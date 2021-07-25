@@ -4,6 +4,9 @@ var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
 var template = require('./lib/template.js');
+var path = require('path');
+var sanitizeHtml = require('sanitize-html');
+
 
 function templateHTML(title, list, body, control) {
   //웹사이트의 제목, 링크, 본문, 삭제, 수정부분을 불러오는 함수
@@ -66,14 +69,17 @@ var app = http.createServer(function (request, response) { //웹서버를 생성
       })
     }
     else {                              //메인페이지를 제외한 다른 모든 페이지
-      fs.readdir('./data', function (error, filelist) {                           //data 디렉토리에서 파일의 리스트를 읽어온다
-        fs.readFile(`data/${queryData}`, 'utf8', function (err, description) {        //읽어온 파일 리스트를 통해 제목과 본문을 가져옴
-          var title = queryData;
+      fs.readdir('./data', function (error, filelist) {             //data 디렉토리에서 파일의 리스트를 읽어온다              
+        var filteredId= path.parse(queryData).base;                 //파일을 읽어올 때 비밀번호와 같은 보안을 처리하기 위한 코드, 걸러진 정보를 가져온다.
+        fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {        //읽어온 파일 리스트를 통해 제목과 본문을 가져옴
+          var title = filteredId;
+          var sanitizedTitle = sanitizeHtml(title);
+          var sanitizedDescription = sanitizeHtml(description);
           var list = template.List(filelist);
-          var html = template.HTML(title, list,
-            `<h2>${title}</h2>${description}`,
+          var html = template.HTML(sanitizedTitle, list,
+            `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
             `<a href = "/create">create </a>
-            <a href="/update?id=${title}">update </a>
+            <a href="/update?id=${sanitizedTitle}">update </a>
             <form action="delete_process" method="post">
                   <input type="hidden" name="id" value="${title}">
                   <input type="submit" value="delete">
@@ -121,8 +127,9 @@ var app = http.createServer(function (request, response) { //웹서버를 생성
   else if (pathname == '/update') {                //링크를 수정하는 코드 구현. pathname이 /update일때 이 코드 실행.  
     //위의 create와 기능은 똑같지만 다른부분은 기존의 파일의 pathname과 제목, 본문을 입력한 form의 내용으로 수정함. 
     fs.readdir('./data', function (error, filelist) {
-      fs.readFile(`data/${queryData}`, 'utf8', function (err, description) {
-        var title = queryData;
+      var filteredId= path.parse(queryData).base;
+      fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {
+        var title = filteredId;
         var list = template.List(filelist);
         var html = template.HTML(title, list,
           `
@@ -167,7 +174,8 @@ var app = http.createServer(function (request, response) { //웹서버를 생성
     request.on('end', function () {
       var post = qs.parse(body);
       var id = post.id;
-      fs.unlink(`data/${id}`, function (error) {        //삭제하는 기능의 코드
+      var filteredId= path.parse(id).base;
+      fs.unlink(`data/${filteredId}`, function (error) {        //삭제하는 기능의 코드
         response.writeHead(302, { Location: `/` });
         response.end();
         //console.log(post);
