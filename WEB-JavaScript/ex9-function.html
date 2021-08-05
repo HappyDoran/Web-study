@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function handler(self) {
+            var target = document.querySelector('body');
+            if (self.value === 'white') {
+                document.querySelector('body').style.backgroundColor = 'black';
+                document.querySelector('body').style.color = 'white'
+                self.value = 'black'
+                var alist = document.querySelectorAll('a');
+                var i = 0;
+                while (alist.length > i) {
+                    alist[i].style.color = 'powderblue';
+                    i++;
+                }
+            }
+            else {
+                document.querySelector('body').style.backgroundColor = 'white';
+                document.querySelector('body').style.color = 'black'
+                self.value = 'white'
+                var alist = document.querySelectorAll('a');
+                var i = 0;
+                while (alist.length > i) {
+                    alist[i].style.color = 'blue';
+                    i++;
+                }
+            }
+        }
+    </script>
+</head>
+
+<body style="background-color: white; color: black;">
+    <input id="coffee" type="button" value="white" onclick="handler(this)
+    ">
+    <ul>
+        <li><a href="">hello</a></li>
+        <li><a href="">nice</a></li>
+        <li><a href="">to</a></li>
+        <li><a href="">meet</a></li>
+        <li><a href="">you</a></li>
+    </ul>
+</body>
+
+</html>
