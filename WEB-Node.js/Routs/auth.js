@@ -6,16 +6,16 @@ var sanitizeHtml = require('sanitize-html');
 var template = require('../lib/template.js');
 var cookie = require('cookie');
 
-var authData = {                   //사용자의 정보를 담은 객체
-    email: `kirin2211@naver.com`,
-    password: `tjehddnjs14`,   //해쉬와 비밀번호 암호화 작업 필요
-    nickname: `Tuna`
-}
-
 router.get('/login', function (request, response) {
-    var title = 'WEB - login';
-    var list = template.list(request.list);
-    var html = template.HTML(title, list, `
+  var fmsg = request.flash();
+   var feedback = '';
+   if(fmsg.error){
+     feedback = fmsg.error[0];
+   }
+  var title = 'WEB - login';
+  var list = template.list(request.list);
+  var html = template.HTML(title, list, `
+  <div style="color:red;">${feedback}</div>
     <form action="/auth/login_process" method="post">
       <p><input type="text" name="email" placeholder="email"></p>
       <p>
@@ -26,21 +26,33 @@ router.get('/login', function (request, response) {
       </p>
     </form>
     `, '');
-    response.send(html);
+  response.send(html);
 });
-
+/*
 router.post('/login_process', function (request, response) {
     var post = request.body;
     var email = post.email;
     var password = post.password;
     if (email == authData.email && password == authData.password) {
         //success
-        response.send("success!");
+        request.session.is_logined = true;
+        request.session.nickname = authData.nickname;
+        request.session.save(function(){
+          response.redirect(`/`);
+        });
     }
     else {
         response.send("who?");
     }
     //response.redirect(`/topic/${title}`);
+  });
+*/
+
+router.get('/logout', function (request, response) {
+  request.logout();
+  request.session.save(function () {     //세션을 다 지운 다음 확인까지 다 끝난 후에 페이지로 돌아감. 
+    response.redirect('/');
+  });
 });
 /*
 router.get('/create', function (request, response) {
@@ -59,7 +71,6 @@ router.get('/create', function (request, response) {
     `, '');
   response.send(html);
 });
-
 router.post('/create_process', function (request, response) {
   var post = request.body;
   var title = post.title;
@@ -68,7 +79,6 @@ router.post('/create_process', function (request, response) {
     response.redirect(`/topic/${title}`);
   });
 });
-
 router.get('/update/:pageId', function (request, response) {
   var filteredId = path.parse(request.params.pageId).base;
   fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {
@@ -92,7 +102,6 @@ router.get('/update/:pageId', function (request, response) {
     response.send(html);
   });
 });
-
 router.post('/update_process', function (request, response) {
   var post = request.body;
   var id = post.id;
@@ -104,7 +113,6 @@ router.post('/update_process', function (request, response) {
     })
   });
 });
-
 router.post('/delete_process', function (request, response) {
   var post = request.body;
   var id = post.id;
@@ -113,8 +121,6 @@ router.post('/delete_process', function (request, response) {
     response.redirect('/');
   });
 });
-
-
 router.get('/:pageId', function (request, response, next) {
   var filteredId = path.parse(request.params.pageId).base;
   fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {
