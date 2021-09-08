@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        td {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- table 이용해야지 표가 만들어짐. table에는 border 속성 사용 가능. -->
+    <table border="2">
+        <thead>
+            <!-- tr 행 -->
+            <tr>
+                <!--td 열  -->
+                <td>
+                    이게
+                </td>
+                <td>
+                    표라는
+                </td>
+                <td>
+                    겁니다
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    그런데
+                </td>
+                <td>
+                    표를
+                </td>
+                <!-- 가로로 표 합치기 세로는 rowspan -->
+                <td colspan="2">
+                    이렇게  합칠 수
+                </td>
+                <td>
+                     있어요
+                </td>
+                </tr>
+                <tr>
+                <td>
+                    이렇게도  
+                </td>
+                <td>
+                     되요
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    어때요?
+                </td>
+                <td>
+                    신기하죠?
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+
+</html>

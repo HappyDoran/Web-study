@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- form action = 사용자가 입력한 정보를 어떠한 곳으로 보내기 위해 사용 -->
+    <form action="http://localhost/login.php">
+        <!-- text 형식  -->
+        <p>id : <input type="text" name="id"></p>
+
+        <!-- 비밀번호 형식 -->
+        <p>password : <input type="password" name="password"></p>
+
+        <p>address : <input type="text" name="address"></p>
+
+        <!-- 제출 형식 -->
+        <p><input type=submit value="Login"></p>
+
+        <!-- 장문을 쓸수있는 형식 -->
+        <p><textarea cols="50" rows="10">
+            여기다 쓰면 됩니다.
+        </textarea></p>
+
+        <!-- 선택을 사용하는 형식 -->
+        <p>
+            <!-- 단일 선택 -->
+            <select name="color1">
+                <option value="red">red</option>
+                <option value="blue">blue</option>
+                <option value="black">black</option>
+            </select>
+
+            <!-- 다중 선택 -->
+            <select name="color2" multiple>
+                <option value="red">red</option>
+                <option value="blue">blue</option>
+                <option value="black">black</option>
+            </select>
+        </p>
+        <input type="submit">
+
+
+        <!-- 라디오 버튼(단일선택)과 체크박스(다중선택) -->
+        <p>
+            붉은색 : <input type="radio" name="color" value="red">
+            검은색 : <input type="radio" name="color" value="black" checked>
+            파란색 : <input type="radio" name="color" value="blue">
+        </p>
+        <p>
+            95 : <input type="checkbox" name="size" value="95">
+            100 : <input type="checkbox" name="size" value="100" checked>
+            105 : <input type="checkbox" name="size" value="105" checked>
+        </p>
+        <input type="submit">
+
+        <!-- 버튼을 사용하는 형식 버튼을 누르면 이벤트가 발생함-->
+        <p>
+            <input type="text">
+            <input type="submit" value="전송">
+            <input type="button" value="버튼" onclick="alert('hello world')">
+            <input type="reset">
+        </p>
+
+        <!-- hidden 방식으로 정보 전송. hide =  hidden이란 값이 전송됨 -->
+        <input type="text" name = "id">
+        <input type="hidden" name="hide" value="hidden">
+        <input type="submit">
+    </form>
+</body>
+
+</html>
