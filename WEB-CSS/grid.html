@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #grid{
+            border : 5px solid pink;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            /*1fr은 화면 전체에서 150px을 제외한 나머지를 다 사용한다 라는 뜻*/
+        }
+        div {
+            border: 5px solid gray;
+        }
+    </style>
+</head>
+
+<body>
+    <div id = "grid">
+        <div>navigation</div>
+        <div>article</div>
+    </div>
+</body>
+
+</html>
