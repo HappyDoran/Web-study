@@ -6,6 +6,9 @@ var sanitizeHtml = require('sanitize-html');
 var template = require('../lib/template.js');
 var auth = require('../lib/auth')
 
+var db = require('../lib/db');
+var shortid = require('shortid');
+/*
 router.get('/login', function (request, response) {
   var title = 'WEB - login';
   var list = template.list(request.list);
@@ -24,6 +27,7 @@ router.get('/login', function (request, response) {
   response.writeHead(200);
   response.send(html);
 });
+*/
 
 router.get('/create', function (request, response) {
   var title = 'WEB - create';
@@ -38,102 +42,133 @@ router.get('/create', function (request, response) {
           <input type="submit">
         </p>
       </form>
-    `, '',auth.statusUI(request,response));
+    `, '', auth.statusUI(request, response));
   response.send(html);
 });
 
 router.post('/create_process', function (request, response) {
-  if(!auth.isOwner(request,response)){
+  if (!auth.isOwner(request, response)) {
     response.redirect('/');
     return false;
   }
   var post = request.body;
   var title = post.title;
   var description = post.description;
-  fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
-    response.redirect(`/topic/${title}`);
-  });
+  var id = shortid.generate();
+  db.get('topics').push({
+    id: id,
+    title: title,
+    description: description,
+    user_id: request.user.id
+  }).write();
+  response.redirect(`/topic/${id}`);
 });
 
 router.get('/update/:pageId', function (request, response) {
-  var filteredId = path.parse(request.params.pageId).base;
-  fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {
-    var title = request.params.pageId;
-    var list = template.list(request.list);
-    var html = template.HTML(title, list,
-      `
+  //console.log("topic", topic);
+  //console.log("request",request.user.id);
+  var topic = db.get('topics').find({ id: request.params.pageId }).value();
+  if (topic.user_id != request.user.id) {
+    //console.log("not yours");
+    request.flash('error', 'Not yours');
+    return response.redirect('/');
+  }
+
+  var title = topic.title;
+  var description = topic.description;
+  var list = template.list(request.list);
+  var html = template.HTML(title, list,
+    `
         <form action="/topic/update_process" method="post">
-          <input type="hidden" name="id" value="${title}">
+          <input type="hidden" name="id" value="${topic.id}">
           <p><input type="text" name="title" placeholder="title" value="${title}"></p>
-          <p>
-            <textarea name="description" placeholder="description">${description}</textarea>
-          </p>
-          <p>
-            <input type="submit">
-          </p>
+          <p><textarea name="description" placeholder="description">${description}</textarea></p>
+          <p><input type="submit"></p>
         </form>
         `,
-      `<a href="/topic/create">create</a> <a href="/topic/update/${title}">update</a>`,
-      auth.statusUI(request,response)
-    );
-    response.send(html);
-  });
+    `<a href="/topic/create">create</a> <a href="/topic/update/${topic.id}">update</a>`,
+    auth.statusUI(request, response)
+  );
+  console.log(title);
+  response.send(html);
+
 });
 
 router.post('/update_process', function (request, response) {
-  if(!auth.isOwner(request,response)){
+  if (!auth.isOwner(request, response)) {
     response.redirect('/');
     return false;
   }
+
   var post = request.body;
   var id = post.id;
   var title = post.title;
   var description = post.description;
-  fs.rename(`data/${id}`, `data/${title}`, function (error) {
-    fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
-      response.redirect(`/topic/${title}`);
-    })
-  });
+  console.log(title);
+  var topic = db.get('topics').find({ id: id }).value();
+  console.log('topic',topic);
+  if (topic.user_id != request.user.id) {
+    request.flash('error', 'Not yours');
+    console.log('not me');
+    return response.redirect('/');
+  }
+  db.get('topics').find({ id: id }).assign({
+    title : title, 
+    description : description
+  }).write();
+  response.redirect(`/topic/${topic.id}`);
+  // fs.rename(`data/${id}`, `data/${title}`, function (error) {
+  //   fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
+  //     response.redirect(`/topic/${title}`);
+  //   })
+  // });
 });
 
 router.post('/delete_process', function (request, response) {
-  if(!auth.isOwner(request,response)){
+  if (!auth.isOwner(request, response)) {
     response.redirect('/');
     return false;
   }
   var post = request.body;
   var id = post.id;
-  var filteredId = path.parse(id).base;
-  fs.unlink(`data/${filteredId}`, function (error) {
-    response.redirect('/');
-  });
+  var topic = db.get('topics').find({ id: id }).value();
+  if (topic.user_id != request.user.id) {
+    request.flash('error', 'not yours');
+    return response.redirect('/');
+  }
+  db.get('topics').remove({ id: id }).write();
+  response.redirect('/');
 });
 
 
 router.get('/:pageId', function (request, response, next) {
-  var filteredId = path.parse(request.params.pageId).base;
-  fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {
-    if (err) {
-      next(err);
-    } else {
-      var title = request.params.pageId;
-      var sanitizedTitle = sanitizeHtml(title);
-      var sanitizedDescription = sanitizeHtml(description, {
-        allowedTags: ['h1']
-      });
-      var list = template.list(request.list);
-      var html = template.HTML(sanitizedTitle, list,
-        `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
-        ` <a href="/topic/create">create</a>
-            <a href="/topic/update/${sanitizedTitle}">update</a>
-            <form action="/topic/delete_process" method="post">
-              <input type="hidden" name="id" value="${sanitizedTitle}">
-              <input type="submit" value="delete">
-            </form>`
-            ,auth.statusUI(request,response)
-      );
-      response.send(html);
-    }
+  var topic = db.get('topics').find({
+    id: request.params.pageId
+  }).value();
+  var user = db.get('users').find({
+    id: topic.user_id
+  }).value();
+  var sanitizedTitle = sanitizeHtml(topic.title);
+  //console.log(sanitizedTitle);
+  //console.log(topic.title);
+  var sanitizedDescription = sanitizeHtml(topic.description, {
+    allowedTags: ['h1']
   });
+  var list = template.list(request.list);
+  var html = template.HTML(sanitizedTitle, list,
+    `
+    <h2>${sanitizedTitle}</h2>
+    ${sanitizedDescription}
+    <p>by ${user.displayName}</p>
+    `,
+    ` <a href="/topic/create">create</a>
+            <a href="/topic/update/${topic.id}">update</a>
+            <form action="/topic/delete_process" method="post">
+              <input type="hidden" name="id" value="${topic.id}">
+              <input type="submit" value="delete">
+            </form>`,
+    auth.statusUI(request, response)
+  );
+  response.send(html);
 });
 module.exports = router;
